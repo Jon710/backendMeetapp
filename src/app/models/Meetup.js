@@ -9,6 +9,7 @@ class Meetup extends Model {
         description: Sequelize.STRING,
         location: Sequelize.STRING,
         date: Sequelize.DATE,
+        canceled_at: Sequelize.DATE,
         past: {
           type: Sequelize.VIRTUAL,
           get() {
@@ -24,7 +25,7 @@ class Meetup extends Model {
 
   static associate(models) {
     this.hasMany(models.Subscription, { foreignKey: 'meetup_id' });
-    this.belongsTo(models.File, { foreignKey: 'file_id', as: 'imgMeetup' });
+    this.belongsTo(models.File, { foreignKey: 'file_id' });
     this.belongsTo(models.User, { foreignKey: 'user_id' });
   }
 }

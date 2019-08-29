@@ -13,25 +13,36 @@ import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
-    const where = {};
     const page = req.query.page || 1;
+    const amountPerPage = 10;
+
+    const where = {};
 
     if (req.query.date) {
-      const searchDate = parseISO(req.query.date);
+      const date = parseISO(req.query.date);
 
       where.date = {
-        [Op.between]: [startOfDay(searchDate), endOfDay(searchDate)],
+        [Op.between]: [startOfDay(date), endOfDay(date)],
       };
     }
 
-    const meetups = await Meetup.findAll({
+    const meetups = await Meetup.findAndCountAll({
       where,
-      include: [User],
-      limit: 10,
-      offset: 10 * page - 10,
+      limit: amountPerPage,
+      offset: (page - 1) * amountPerPage,
+      order: [['date']],
+      include: [
+        { model: User, attributes: ['id', 'name', 'email'] },
+        { model: File, attributes: ['id', 'path', 'url'] },
+      ],
     });
 
-    return res.json(meetups);
+    const total_pages = Math.ceil(meetups.count / amountPerPage);
+
+    return res.json({
+      total_pages,
+      ...meetups,
+    });
   }
 
   async myMeetups(req, res) {
@@ -42,10 +53,8 @@ class MeetupController {
         user_id: req.userId,
       },
       include: [
-        {
-          model: File,
-          attributes: ['id', 'path', 'url'],
-        },
+        { model: User, attributes: ['id', 'name', 'email'] },
+        { model: File, attributes: ['id', 'path', 'url'] },
       ],
       order: ['date'],
       limit: 10,

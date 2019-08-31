@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import User from '../models/User';
+import File from '../models/File';
 import Meetup from '../models/Meetup';
 import Subscription from '../models/Subscription';
 import Queue from '../../lib/Queue';
@@ -19,11 +20,16 @@ class SubscriptionController {
               [Op.gt]: new Date(),
             },
           },
+          include: [
+            { model: User, attributes: ['id', 'name', 'email'] },
+            { model: File, attributes: ['id', 'path', 'url'] },
+          ],
           required: true,
         },
       ],
-      order: [[Meetup, 'date']],
+      order: [['meetup_id', 'ASC']],
     });
+    console.log(subscriptions);
 
     return res.json(subscriptions);
   }
